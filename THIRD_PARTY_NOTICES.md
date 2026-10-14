@@ -27,3 +27,14 @@ redistributed by this repository.
   under their respective owners' licenses.
 
 All third-party components retain their original licenses.
+
+## Optional video tools and agent guidance (not vendored)
+
+- HyperFrames: https://github.com/heygen-com/hyperframes — upstream declares Apache-2.0.
+  Existing server-side rendering invokes its optional CLI; it is not copied into this repository.
+- Remotion: https://github.com/remotion-dev/remotion — governed by its own Free/Company License
+  terms, not this repository's MIT license. Guidance routes clients to an external workspace;
+  no Remotion source or runtime is bundled here. Review the selected version's LICENSE.md before use.
+
+These notices describe the upstream terms inspected on 2026-10-14, not permission for every client
+use case. Engine licensing and the rights to video input assets must both be checked.

@@ -1,0 +1,80 @@
+{
+  "module_id": "m02-inbound",
+  "module_title": "Inbound: Receiving Finished Goods",
+  "brand_name": "Northwind Beverages",
+  "audience": "New warehouse checkers and supervisors",
+  "objective": "Receive finished goods from a plant, a sales truck or a supplier and post them correctly in SAP.",
+  "screens": [
+    {
+      "screen_id": "s01",
+      "screen_type": "title_slide",
+      "purpose": "Set context: inbound is where stock accuracy starts.",
+      "visual_concept": "Full-bleed photo of a trailer backing into a loading bay, navy overlay, module title left-aligned with a short red accent bar.",
+      "layout": "full_media",
+      "background_role": "primary",
+      "text_role": "on_primary",
+      "accent_role": "accent",
+      "imagery": [
+        { "kind": "photo", "description": "Trailer reversing into warehouse dock door 4, dusk lighting", "source": "client", "alt_text": "A delivery trailer backing into a warehouse loading bay" }
+      ],
+      "on_screen_text": "Inbound: Receiving Finished Goods",
+      "animation": "fade",
+      "cue_targets": []
+    },
+    {
+      "screen_id": "s02",
+      "screen_type": "hotspot",
+      "purpose": "Show the three inbound sources and let the learner explore each.",
+      "visual_concept": "Warehouse floor plan from above with three glowing entry points: plant shuttle, sales truck, supplier truck; each a white icon tile.",
+      "layout": "full_media",
+      "background_role": "light",
+      "text_role": "dark",
+      "accent_role": "secondary",
+      "imagery": [
+        { "kind": "diagram", "description": "Top-down warehouse map with three labelled dock entry points", "source": "svg", "alt_text": "Warehouse map showing three receiving sources: plant, sales truck and supplier" }
+      ],
+      "on_screen_text": "Three ways goods arrive. Select each one.",
+      "interaction": "explore, require_all",
+      "cue_targets": ["plant", "truck", "supplier"]
+    },
+    {
+      "screen_id": "s03",
+      "screen_type": "content_slide",
+      "purpose": "Walk through receiving from the plant: check, offload, sign, post.",
+      "visual_concept": "Four-step horizontal flow of icon tiles connected by dotted lines; each step lights up as the narrator reaches it.",
+      "layout": "4-step icon flow",
+      "background_role": "light",
+      "text_role": "dark",
+      "accent_role": "secondary",
+      "imagery": [
+        { "kind": "icon", "description": "Clipboard check, forklift, signature, SAP screen icons", "source": "svg", "decorative": true }
+      ],
+      "on_screen_text": "Check → Offload → Sign & stamp → Post in SAP",
+      "animation": "fade-up",
+      "cue_targets": ["check", "offload", "sign", "post"]
+    },
+    {
+      "screen_id": "s04",
+      "screen_type": "decision_scenario",
+      "purpose": "Practise the damaged-goods exception.",
+      "visual_concept": "Close-up photo of a crushed shrink-wrapped pallet; the learner chooses what the checker does next.",
+      "layout": "media_text",
+      "background_role": "surface",
+      "text_role": "dark",
+      "accent_role": "accent",
+      "imagery": [
+        { "kind": "photo", "description": "Damaged pallet with torn shrink wrap and dented cases", "source": "client", "alt_text": "A pallet with torn wrapping and dented cases" }
+      ],
+      "on_screen_text": "The pallet is damaged. What do you do?"
+    },
+    {
+      "screen_id": "s05",
+      "screen_type": "mcq",
+      "purpose": "Check understanding of the supplier mismatch rule.",
+      "visual_concept": "Clean question card on a light background with a small supplier-truck icon in the corner.",
+      "background_role": "light",
+      "text_role": "dark",
+      "imagery": []
+    }
+  ]
+}
