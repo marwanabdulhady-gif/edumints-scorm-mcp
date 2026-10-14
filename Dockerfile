@@ -48,6 +48,7 @@ COPY runtime ./runtime
 COPY server.py ./server.py
 COPY examples ./examples
 COPY tools ./tools
+COPY playbook ./playbook
 
 RUN pip install --upgrade pip && pip install ".[tts]"
 

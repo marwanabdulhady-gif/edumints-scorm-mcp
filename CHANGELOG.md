@@ -5,6 +5,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added — Authoring agent playbook: brand kit, module visual plan, narration & audio script
+- **`playbook/`** — instructions for the AI *author* (not for coding agents): pipeline overview,
+  brand kit, module visual plan, narration script, audio production; filled JSON templates in
+  `playbook/templates/`. Shipped in the Docker image.
+- **New tools (additive, deterministic, no LLM):** `get_playbook`, `brand_to_theme`,
+  `lint_visual_plan`, `lint_narration_script`, `export_audio_script` (43 → 48 tools).
+- **New MCP prompts:** `plan_module_visuals`, `write_module_narration` — load the playbook rules
+  and the template shape into the client conversation.
+- **Models** `BrandKit`, `VisualPlan`, `NarrationScript` (+ sub-models) appended to
+  `core/project.py`; logic in the new `core/playbook.py`. No existing model, tool signature or
+  package output changed.
+- Language-aware narration pace defaults: en 140 · ar 120 · tr 130 wpm.
+- Tests: `tests/test_playbook.py` (14).
+
 ### Added — #145: WebVTT altyazı hattı (a11y kısıt #1 kısmen kapandı, #2 artık sessiz değil)
 Sesli video içeren kurslarda WCAG 1.2.2 doğrudan fail'di ve kamu/kurumsal ihalede altyazı
 sözleşme şartı olabiliyor — yol haritasının a11y ekseninde en yüksek öncelikli madde buydu.

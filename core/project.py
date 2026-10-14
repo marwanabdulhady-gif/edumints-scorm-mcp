@@ -1343,3 +1343,119 @@ class BuildFromSpecOut(BaseModel):
 
 # AddAssetOut = AssetRef (CONTRACTS.md §3)
 AddAssetOut = AssetRef
+
+
+# --------------------------------------------------------------------------- #
+# Ajan oyun kitabı (playbook/) — marka kiti, modül görsel planı, seslendirme metni
+# --------------------------------------------------------------------------- #
+# Additive/opsiyonel: hiçbir mevcut modele dokunmaz. Bu modeller yazarlık ÖNCESİ planlama
+# belgeleridir (AI istemcisi üretir); sunucu yalnız deterministik denetler/dönüştürür
+# (core/playbook.py) — LLM çağrısı YOK. Kurs paketine doğrudan girmezler.
+ColorRole = Literal[
+    "primary", "secondary", "accent", "dark", "light", "surface",
+    "success", "error", "warning", "on_primary",
+]
+
+
+class BrandColors(BaseModel):
+    primary: str
+    secondary: str | None = None
+    accent: str | None = None
+    dark: str | None = None      # gövde metni / koyu nötr
+    light: str | None = None     # sayfa zemini / açık nötr
+    surface: str | None = None   # kart zemini
+    success: str | None = None
+    error: str | None = None
+    warning: str | None = None
+
+    @field_validator("*")
+    @classmethod
+    def _hex(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        v = v.strip()
+        if not re.fullmatch(r"#[0-9a-fA-F]{6}", v):
+            raise ValueError(f"renk #RRGGBB biçiminde olmalı (alınan: {v!r})")
+        return v.lower()
+
+
+class BrandFonts(BaseModel):
+    heading: str | None = None
+    body: str | None = None
+
+
+class BrandVoice(BaseModel):
+    tone: str | None = None          # ör. "warm, practical, confident"
+    persona: str | None = None       # ör. "experienced warehouse supervisor"
+    formality: Literal["formal", "neutral", "conversational"] = "conversational"
+
+
+class BrandKit(BaseModel):
+    name: str
+    language: str = "en"
+    colors: BrandColors
+    fonts: BrandFonts = Field(default_factory=BrandFonts)
+    logo_asset_id: str | None = None
+    logo_alt: str | None = None
+    imagery_style: str | None = None  # ör. "real warehouse photos under a navy overlay"
+    voice: BrandVoice = Field(default_factory=BrandVoice)
+    do: list[str] = Field(default_factory=list)
+    dont: list[str] = Field(default_factory=list)
+
+
+class PlanImagery(BaseModel):
+    kind: Literal["photo", "illustration", "icon", "diagram", "screenshot", "video", "chart"]
+    description: str
+    source: Literal["generate", "stock", "client", "screenshot", "svg"] = "generate"
+    alt_text: str | None = None
+    decorative: bool = False
+
+
+class VisualPlanScreen(BaseModel):
+    screen_id: str
+    screen_type: ScreenType
+    purpose: str                       # bu ekranın öğrenme işi (tek cümle)
+    visual_concept: str                # öğrenen ne GÖRÜR (kompozisyon, metafor)
+    layout: str | None = None          # ör. "text_media", "full_media", "3-col icon grid"
+    background_role: ColorRole = "light"
+    text_role: ColorRole = "dark"
+    accent_role: ColorRole | None = None
+    imagery: list[PlanImagery] = Field(default_factory=list)
+    on_screen_text: str | None = None
+    animation: str | None = None       # fade-up | fade | zoom | slide-left
+    interaction: str | None = None
+    cue_targets: list[str] = Field(default_factory=list)  # anlatımda [[cue:id]] ile çağrılabilir öğeler
+
+
+class VisualPlan(BaseModel):
+    module_id: str
+    module_title: str
+    brand_name: str | None = None
+    audience: str | None = None
+    objective: str | None = None
+    screens: list[VisualPlanScreen] = Field(min_length=1)
+
+
+class NarrationVoice(BaseModel):
+    provider: Literal["piper", "external", "human"] = "external"
+    voice_id: str | None = None
+    persona: str | None = None
+    gender: str | None = None
+
+
+class NarrationSegment(BaseModel):
+    screen_id: str
+    narration: str                     # [[cue:id]] ve [[pause:1.5]] işaretleri içerebilir
+    on_screen_text: str | None = None
+    target_sec: float | None = None
+    tone: str | None = None
+    part: str | None = None            # ekran içi alt parça (ör. hotspot bölgesi / sekme id)
+
+
+class NarrationScript(BaseModel):
+    module_id: str
+    language: str = "en"
+    wpm: int | None = Field(default=None, ge=60, le=220)
+    voice: NarrationVoice = Field(default_factory=NarrationVoice)
+    lexicon: dict[str, str] = Field(default_factory=dict)  # terim → okunuş (ör. "MIGO": "mee-go")
+    segments: list[NarrationSegment] = Field(min_length=1)
