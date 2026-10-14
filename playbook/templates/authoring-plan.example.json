@@ -1,0 +1,266 @@
+{
+  "module_id": "receiving",
+  "revision": 1,
+  "title": "Receiving safely",
+  "language": "en",
+  "audience": "New warehouse colleagues",
+  "reference_analysis": "Use the supplied course as a layout reference only; confirm receiving facts with the SOP owner.",
+  "learner_journey": "Observe the document check, apply the discrepancy rule in a short puzzle, then review feedback.",
+  "sources": [
+    {
+      "id": "sop",
+      "title": "Illustrative receiving SOP",
+      "location": "Client supplied SOP section 2 (replace with actual reference)",
+      "observations": [
+        "Match counted quantity to delivery note; escalate differences."
+      ],
+      "reuse": "patterns_only"
+    }
+  ],
+  "objectives": [
+    {
+      "id": "discrepancy",
+      "outcome": "Identify and escalate a quantity discrepancy before signoff.",
+      "source_ids": [
+        "sop"
+      ],
+      "assessment_screen_ids": [
+        "escape"
+      ]
+    }
+  ],
+  "visual_plan": {
+    "module_id": "receiving",
+    "module_title": "Receiving safely",
+    "screens": [
+      {
+        "screen_id": "intro",
+        "screen_type": "content_slide",
+        "purpose": "Explain the receiving evidence",
+        "visual_concept": "A mentor beside a labeled delivery note and inspection checklist"
+      },
+      {
+        "screen_id": "escape",
+        "screen_type": "escape_room",
+        "purpose": "Apply discrepancy handling",
+        "visual_concept": "A delivery desk with a note, quantity clue and supervisor signoff"
+      },
+      {
+        "screen_id": "clip",
+        "screen_type": "video",
+        "purpose": "Demonstrate checking a delivery note",
+        "visual_concept": "A close-up document check with restrained overlays and spoken explanation"
+      }
+    ]
+  },
+  "narration_script": {
+    "module_id": "receiving",
+    "language": "en",
+    "segments": [
+      {
+        "screen_id": "intro",
+        "narration": "Compare the counted goods with the delivery note before signing. A difference needs supervisor review."
+      },
+      {
+        "screen_id": "escape",
+        "narration": "Use the delivery note and count sheet to find the discrepancy. Then explain what the supervisor should review."
+      },
+      {
+        "screen_id": "clip",
+        "narration": "Check the quantity and record any difference before the supervisor reviews it."
+      }
+    ]
+  },
+  "assets": [
+    {
+      "id": "mentor-master",
+      "kind": "character",
+      "screen_ids": [
+        "intro"
+      ],
+      "brief": "Use approved navy/white document styling; readable labels and safe margins.",
+      "route": "agent_tool",
+      "source": "ai-generated",
+      "rights_note": "Create original assets; no reference-course media copied.",
+      "alt_text": "Warehouse mentor holding an inspection checklist.",
+      "character_id": "mentor",
+      "variant": "neutral"
+    },
+    {
+      "id": "mentor-hint",
+      "kind": "character",
+      "screen_ids": [
+        "escape"
+      ],
+      "brief": "Use approved navy/white document styling; readable labels and safe margins.",
+      "route": "agent_tool",
+      "source": "ai-generated",
+      "rights_note": "Create original assets; no reference-course media copied.",
+      "alt_text": "Mentor pointing to the counted quantity.",
+      "character_id": "mentor",
+      "variant": "hint"
+    },
+    {
+      "id": "note",
+      "kind": "game_object",
+      "screen_ids": [
+        "escape"
+      ],
+      "brief": "Use approved navy/white document styling; readable labels and safe margins.",
+      "route": "agent_tool",
+      "source": "ai-generated",
+      "rights_note": "Create original assets; no reference-course media copied.",
+      "alt_text": "Delivery note lists twelve cartons; the count sheet lists ten."
+    },
+    {
+      "id": "demo-mp4",
+      "kind": "video",
+      "screen_ids": [
+        "clip"
+      ],
+      "brief": "Use approved navy/white document styling; readable labels and safe margins.",
+      "route": "video_engine",
+      "source": "ai-generated",
+      "rights_note": "Create original assets; no reference-course media copied.",
+      "transcript": "Check the quantity and record any difference before the supervisor reviews it."
+    },
+    {
+      "id": "demo-vtt",
+      "kind": "captions",
+      "screen_ids": [
+        "clip"
+      ],
+      "brief": "Use approved navy/white document styling; readable labels and safe margins.",
+      "route": "agent_tool",
+      "source": "ai-generated",
+      "rights_note": "Create original assets; no reference-course media copied."
+    }
+  ],
+  "characters": [
+    {
+      "id": "mentor",
+      "role": "Coach",
+      "identity": "Fictional warehouse supervisor wearing approved PPE.",
+      "style": "Original flat illustration in navy and white.",
+      "consistency_rules": [
+        "Keep face, PPE and proportions consistent across poses."
+      ],
+      "variants": [
+        "neutral",
+        "hint"
+      ],
+      "reference_asset_id": "mentor-master"
+    }
+  ],
+  "activities": [
+    {
+      "id": "quantity-puzzle",
+      "screen_id": "escape",
+      "kind": "escape_room",
+      "objective_ids": [
+        "discrepancy"
+      ],
+      "instructions": "Compare twelve listed cartons with ten counted. Enter the difference.",
+      "evidence_source_ids": [
+        "sop"
+      ],
+      "asset_ids": [
+        "note",
+        "mentor-hint"
+      ],
+      "success_rule": "Accept 2 or two.",
+      "scoring": "One puzzle worth ten points; no extra points for replay.",
+      "failure_retry": "Three lives; show hint after a wrong answer, allow a fresh practice restart.",
+      "feedback": "Two cartons are missing; document and escalate before signoff.",
+      "accessible_alternative": "Read text versions of the note and count; enter answer by keyboard.",
+      "hints": [
+        "Subtract counted quantity from the delivery note quantity."
+      ],
+      "solution": "2",
+      "debrief": "A quantity discrepancy requires supervisor review before signoff.",
+      "timer_policy": "Untimed practice."
+    }
+  ],
+  "videos": [
+    {
+      "id": "document-demo",
+      "screen_id": "clip",
+      "output_asset_id": "demo-mp4",
+      "engine": "hyperframes",
+      "reason": "HTML document animation with a simple teaching overlay.",
+      "width": 1280,
+      "height": 720,
+      "fps": 30,
+      "execution": "existing_server",
+      "license_review": "pending",
+      "captions_asset_id": "demo-vtt",
+      "shots": [
+        {
+          "id": "check",
+          "duration_sec": 8,
+          "visual": "Highlight listed and counted quantities on the approved note.",
+          "narration": "Check the quantity and record any difference before the supervisor reviews it.",
+          "asset_ids": [
+            "note"
+          ]
+        }
+      ]
+    }
+  ],
+  "reviews": [
+    {
+      "scope": "visual",
+      "status": "pending"
+    },
+    {
+      "scope": "characters",
+      "status": "pending"
+    },
+    {
+      "scope": "interaction",
+      "status": "pending"
+    },
+    {
+      "scope": "narration",
+      "status": "pending"
+    },
+    {
+      "scope": "video",
+      "status": "pending"
+    }
+  ],
+  "quality_checks": [
+    {
+      "category": "source_accuracy",
+      "status": "pending"
+    },
+    {
+      "category": "assets",
+      "status": "pending"
+    },
+    {
+      "category": "accessibility",
+      "status": "pending"
+    },
+    {
+      "category": "responsive",
+      "status": "pending"
+    },
+    {
+      "category": "audio_sync",
+      "status": "pending"
+    },
+    {
+      "category": "branching_scoring",
+      "status": "pending"
+    },
+    {
+      "category": "scorm",
+      "status": "pending"
+    },
+    {
+      "category": "video",
+      "status": "pending"
+    }
+  ]
+}

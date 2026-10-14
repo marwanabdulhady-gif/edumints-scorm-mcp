@@ -45,6 +45,7 @@ packages = ["core", "components", "auth"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "server.py" = "server.py"
+"playbook" = "playbook"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

@@ -5,6 +5,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added — Complete reference-to-course authoring and video routing
+- Integrated the open playbook PR #1 patch on this working branch without merging its PR.
+- Seven additional instruction topics: reference analysis, asset manifests, character consistency,
+  gamification/escape rooms, HyperFrames/Remotion video production, QA and complete authoring.
+- `AuthoringPlan` models and filled example; deterministic `lint_authoring_plan` checks references,
+  text alternatives, character variants, game requirements, video limits/license review, recorded
+  approvals and delivery evidence. Approval records remain self-reported; no build/TTS gate added.
+- MCP initialization instructions direct clients to the authoring workflow before production.
+- `get_video_workflow` and `author_course_from_reference` / `plan_course_video` prompts. HyperFrames
+  uses existing optional tools; Remotion is an external agent-workspace route, not a native renderer.
+- Playbook included in Python wheels as well as Docker. No upstream video engine vendored.
+- Fixed SSML attribute escaping/lexicon processing and cue checks against empty target lists.
+  Exported cue timestamps explicitly identify estimated word-count timing.
+- New unit/MCP tests in `tests/test_authoring_playbook.py`; existing player/package contracts unchanged.
+
+
+### Added — Authoring agent playbook: brand kit, module visual plan, narration & audio script
+- **`playbook/`** — instructions for the AI *author* (not for coding agents): pipeline overview,
+  brand kit, module visual plan, narration script, audio production; filled JSON templates in
+  `playbook/templates/`. Shipped in the Docker image.
+- **New tools (additive, deterministic, no LLM):** `get_playbook`, `brand_to_theme`,
+  `lint_visual_plan`, `lint_narration_script`, `export_audio_script` (43 → 48 tools).
+- **New MCP prompts:** `plan_module_visuals`, `write_module_narration` — load the playbook rules
+  and the template shape into the client conversation.
+- **Models** `BrandKit`, `VisualPlan`, `NarrationScript` (+ sub-models) appended to
+  `core/project.py`; logic in the new `core/playbook.py`. No existing model, tool signature or
+  package output changed.
+- Language-aware narration pace defaults: en 140 · ar 120 · tr 130 wpm.
+- Tests: `tests/test_playbook.py` (14).
+
 ### Added — #145: WebVTT altyazı hattı (a11y kısıt #1 kısmen kapandı, #2 artık sessiz değil)
 Sesli video içeren kurslarda WCAG 1.2.2 doğrudan fail'di ve kamu/kurumsal ihalede altyazı
 sözleşme şartı olabiliyor — yol haritasının a11y ekseninde en yüksek öncelikli madde buydu.

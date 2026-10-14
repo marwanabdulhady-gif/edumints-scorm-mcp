@@ -1343,3 +1343,249 @@ class BuildFromSpecOut(BaseModel):
 
 # AddAssetOut = AssetRef (CONTRACTS.md §3)
 AddAssetOut = AssetRef
+
+
+# --------------------------------------------------------------------------- #
+# Ajan oyun kitabı (playbook/) — marka kiti, modül görsel planı, seslendirme metni
+# --------------------------------------------------------------------------- #
+# Additive/opsiyonel: hiçbir mevcut modele dokunmaz. Bu modeller yazarlık ÖNCESİ planlama
+# belgeleridir (AI istemcisi üretir); sunucu yalnız deterministik denetler/dönüştürür
+# (core/playbook.py) — LLM çağrısı YOK. Kurs paketine doğrudan girmezler.
+ColorRole = Literal[
+    "primary", "secondary", "accent", "dark", "light", "surface",
+    "success", "error", "warning", "on_primary",
+]
+
+
+class BrandColors(BaseModel):
+    primary: str
+    secondary: str | None = None
+    accent: str | None = None
+    dark: str | None = None      # gövde metni / koyu nötr
+    light: str | None = None     # sayfa zemini / açık nötr
+    surface: str | None = None   # kart zemini
+    success: str | None = None
+    error: str | None = None
+    warning: str | None = None
+
+    @field_validator("*")
+    @classmethod
+    def _hex(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        v = v.strip()
+        if not re.fullmatch(r"#[0-9a-fA-F]{6}", v):
+            raise ValueError(f"renk #RRGGBB biçiminde olmalı (alınan: {v!r})")
+        return v.lower()
+
+
+class BrandFonts(BaseModel):
+    heading: str | None = None
+    body: str | None = None
+
+
+class BrandVoice(BaseModel):
+    tone: str | None = None          # ör. "warm, practical, confident"
+    persona: str | None = None       # ör. "experienced warehouse supervisor"
+    formality: Literal["formal", "neutral", "conversational"] = "conversational"
+
+
+class BrandKit(BaseModel):
+    name: str
+    language: str = "en"
+    colors: BrandColors
+    fonts: BrandFonts = Field(default_factory=BrandFonts)
+    logo_asset_id: str | None = None
+    logo_alt: str | None = None
+    imagery_style: str | None = None  # ör. "real warehouse photos under a navy overlay"
+    voice: BrandVoice = Field(default_factory=BrandVoice)
+    do: list[str] = Field(default_factory=list)
+    dont: list[str] = Field(default_factory=list)
+
+
+class PlanImagery(BaseModel):
+    kind: Literal["photo", "illustration", "icon", "diagram", "screenshot", "video", "chart"]
+    description: str
+    source: Literal["generate", "stock", "client", "screenshot", "svg"] = "generate"
+    alt_text: str | None = None
+    decorative: bool = False
+
+
+class VisualPlanScreen(BaseModel):
+    screen_id: str
+    screen_type: ScreenType
+    purpose: str                       # bu ekranın öğrenme işi (tek cümle)
+    visual_concept: str                # öğrenen ne GÖRÜR (kompozisyon, metafor)
+    layout: str | None = None          # ör. "text_media", "full_media", "3-col icon grid"
+    background_role: ColorRole = "light"
+    text_role: ColorRole = "dark"
+    accent_role: ColorRole | None = None
+    imagery: list[PlanImagery] = Field(default_factory=list)
+    on_screen_text: str | None = None
+    animation: str | None = None       # fade-up | fade | zoom | slide-left
+    interaction: str | None = None
+    cue_targets: list[str] = Field(default_factory=list)  # anlatımda [[cue:id]] ile çağrılabilir öğeler
+
+
+class VisualPlan(BaseModel):
+    module_id: str
+    module_title: str
+    brand_name: str | None = None
+    audience: str | None = None
+    objective: str | None = None
+    screens: list[VisualPlanScreen] = Field(min_length=1)
+
+
+class NarrationVoice(BaseModel):
+    provider: Literal["piper", "external", "human"] = "external"
+    voice_id: str | None = None
+    persona: str | None = None
+    gender: str | None = None
+
+
+class NarrationSegment(BaseModel):
+    screen_id: str
+    narration: str                     # [[cue:id]] ve [[pause:1.5]] işaretleri içerebilir
+    on_screen_text: str | None = None
+    target_sec: float | None = None
+    tone: str | None = None
+    part: str | None = None            # ekran içi alt parça (ör. hotspot bölgesi / sekme id)
+
+
+class NarrationScript(BaseModel):
+    module_id: str
+    language: str = "en"
+    wpm: int | None = Field(default=None, ge=60, le=220)
+    voice: NarrationVoice = Field(default_factory=NarrationVoice)
+    lexicon: dict[str, str] = Field(default_factory=dict)  # terim → okunuş (ör. "MIGO": "mee-go")
+    segments: list[NarrationSegment] = Field(min_length=1)
+
+
+# Uçtan uca yazarlık planı; çalışma zamanı spec'inden ayrı, yalnız denetlenir.
+PlanId = Annotated[str, Field(pattern=r"^[A-Za-z0-9_.-]{1,64}$")]
+PlanText = Annotated[str, Field(min_length=1, pattern=r"\S")]
+
+
+class ReferenceSource(BaseModel):
+    id: PlanId
+    title: PlanText
+    location: PlanText
+    observations: list[PlanText] = Field(min_length=1)
+    reuse: Literal["patterns_only", "authorized_assets", "unknown"] = "patterns_only"
+    permission_note: str | None = None
+
+
+class AuthoringObjective(BaseModel):
+    id: PlanId
+    outcome: PlanText
+    source_ids: list[PlanId] = Field(min_length=1)
+    assessment_screen_ids: list[PlanId] = Field(min_length=1)
+
+
+class ProductionAsset(BaseModel):
+    id: PlanId
+    kind: Literal[
+        "image", "background", "character", "diagram", "audio", "music", "sfx",
+        "video", "animation", "game_object", "document", "captions",
+    ]
+    screen_ids: list[PlanId] = Field(min_length=1)
+    brief: PlanText
+    route: Literal["agent_tool", "client_upload", "svg", "piper", "human", "video_engine"]
+    source: Literal["ai-generated", "cc0", "public-domain", "own", "local"]
+    rights_note: PlanText
+    alt_text: str | None = None
+    transcript: str | None = None
+    decorative: bool = False
+    character_id: PlanId | None = None
+    variant: str | None = None
+    status: Literal["planned", "produced", "registered"] = "planned"
+    registered_asset_id: str | None = None
+
+
+class CharacterPlan(BaseModel):
+    id: PlanId
+    role: PlanText
+    identity: PlanText
+    style: PlanText
+    consistency_rules: list[PlanText] = Field(min_length=1)
+    variants: list[PlanText] = Field(min_length=1)
+    reference_asset_id: PlanId
+
+
+class ActivityPlan(BaseModel):
+    id: PlanId
+    screen_id: PlanId
+    kind: Literal["scenario", "gamification", "escape_room", "knowledge_check"]
+    objective_ids: list[PlanId] = Field(min_length=1)
+    instructions: PlanText
+    evidence_source_ids: list[PlanId] = Field(min_length=1)
+    asset_ids: list[PlanId] = Field(default_factory=list)
+    success_rule: PlanText
+    scoring: PlanText
+    failure_retry: PlanText
+    feedback: PlanText
+    accessible_alternative: PlanText
+    hints: list[PlanText] = Field(default_factory=list)
+    solution: str | None = None
+    debrief: str | None = None
+    timer_policy: str | None = None
+
+
+class VideoShot(BaseModel):
+    id: PlanId
+    duration_sec: float = Field(gt=0, allow_inf_nan=False)
+    visual: PlanText
+    narration: str | None = None
+    asset_ids: list[PlanId] = Field(default_factory=list)
+
+
+class VideoPlan(BaseModel):
+    id: PlanId
+    screen_id: PlanId
+    output_asset_id: PlanId
+    engine: Literal["hyperframes", "remotion"]
+    reason: PlanText
+    width: int = Field(default=1920, ge=1, le=3840)
+    height: int = Field(default=1080, ge=1, le=3840)
+    fps: int = Field(default=30, ge=1, le=60)
+    execution: Literal["existing_server", "agent_workspace"] = "agent_workspace"
+    license_review: Literal["pending", "confirmed"] = "pending"
+    license_note: str | None = None
+    captions_asset_id: PlanId | None = None
+    shots: list[VideoShot] = Field(min_length=1)
+
+
+class ReviewRecord(BaseModel):
+    scope: Literal["visual", "characters", "interaction", "narration", "video"]
+    status: Literal["pending", "approved", "changes_requested"] = "pending"
+    reviewer: str | None = None
+    evidence: str | None = None
+
+
+class QualityCheck(BaseModel):
+    category: Literal[
+        "source_accuracy", "assets", "accessibility", "responsive", "audio_sync",
+        "branching_scoring", "scorm", "video",
+    ]
+    status: Literal["pending", "passed", "failed", "not_applicable"] = "pending"
+    evidence: str | None = None
+
+
+class AuthoringPlan(BaseModel):
+    module_id: PlanId
+    revision: int = Field(default=1, ge=1)
+    title: PlanText
+    language: str = "en"
+    audience: PlanText
+    reference_analysis: PlanText
+    learner_journey: PlanText
+    sources: list[ReferenceSource] = Field(min_length=1)
+    objectives: list[AuthoringObjective] = Field(min_length=1)
+    visual_plan: VisualPlan
+    narration_script: NarrationScript | None = None
+    assets: list[ProductionAsset] = Field(default_factory=list)
+    characters: list[CharacterPlan] = Field(default_factory=list)
+    activities: list[ActivityPlan] = Field(default_factory=list)
+    videos: list[VideoPlan] = Field(default_factory=list)
+    reviews: list[ReviewRecord] = Field(default_factory=list)
+    quality_checks: list[QualityCheck] = Field(default_factory=list)
