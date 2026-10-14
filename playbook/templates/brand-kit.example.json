@@ -1,0 +1,22 @@
+{
+  "name": "Northwind Beverages",
+  "language": "en",
+  "colors": {
+    "primary": "#123c7a",
+    "secondary": "#2f7fc1",
+    "accent": "#e3262f",
+    "dark": "#1b2430",
+    "light": "#f5f7fa",
+    "surface": "#ffffff"
+  },
+  "fonts": { "heading": "Montserrat", "body": "Open Sans" },
+  "logo_asset_id": null,
+  "imagery_style": "Real warehouse and fleet photography under a 70% navy overlay; flat white line icons inside rounded blue tiles; no cartoon characters.",
+  "voice": {
+    "tone": "warm, practical, confident",
+    "persona": "an experienced warehouse supervisor coaching a new colleague",
+    "formality": "conversational"
+  },
+  "do": ["Show real roles doing real tasks", "One idea per screen", "Use red only to flag exceptions and errors"],
+  "dont": ["Stock photos of people pointing at screens", "Gradients other than the navy overlay", "More than two typefaces"]
+}

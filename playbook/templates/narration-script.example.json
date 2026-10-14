@@ -1,0 +1,34 @@
+{
+  "module_id": "m02-inbound",
+  "language": "en",
+  "voice": { "provider": "external", "persona": "warm male supervisor, mid-30s, neutral Gulf-English accent" },
+  "lexicon": { "SAP": "S-A-P", "MIGO": "mee-go", "STO": "S-T-O" },
+  "segments": [
+    {
+      "screen_id": "s01",
+      "narration": "Every accurate stock count starts at the dock. [[pause:0.5]] In this module, you'll learn how to receive finished goods, and get them into SAP the right way.",
+      "on_screen_text": "Inbound: Receiving Finished Goods",
+      "target_sec": 15,
+      "tone": "welcoming"
+    },
+    {
+      "screen_id": "s02",
+      "narration": "Goods reach us from three places. [[cue:plant]] Our own plants, [[cue:truck]] sales trucks returning from their routes, [[cue:supplier]] and outside suppliers. Each one has its own checks, so explore all three.",
+      "on_screen_text": "Three ways goods arrive. Select each one.",
+      "target_sec": 20
+    },
+    {
+      "screen_id": "s03",
+      "narration": "When a shuttle arrives from the plant, [[cue:check]] first compare the goods with the delivery note. [[cue:offload]] If everything matches, offload to bulk storage. [[cue:sign]] Then sign and stamp the note for the driver. [[cue:post]] Finally, post the receipt in SAP using MIGO.",
+      "on_screen_text": "Check → Offload → Sign & stamp → Post in SAP",
+      "target_sec": 30,
+      "tone": "clear, step by step"
+    },
+    {
+      "screen_id": "s04",
+      "narration": "Here's a situation you'll meet sooner or later. [[pause:0.5]] One pallet arrives damaged. What would you do?",
+      "target_sec": 10,
+      "tone": "curious"
+    }
+  ]
+}

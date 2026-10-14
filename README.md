@@ -92,6 +92,21 @@ For video generation also install Node 22+ with HyperFrames (`npm i -g hyperfram
 Configuration: copy `.env.example` and adapt (data dir, quotas, base URL, TTLs). **No secrets are
 required** to run locally.
 
+## Authoring playbook (brand → visual plan → narration → audio)
+
+Before building, the AI author plans each module with three documents, and the server checks
+each one deterministically (no LLM on the server):
+
+| Step | Tool | What it does |
+|---|---|---|
+| Brand kit | `brand_to_theme` | Client colours/fonts/voice → `set_theme` tokens + WCAG contrast report (auto-darkens a too-light primary and says so) |
+| Visual plan | `lint_visual_plan` | Screen-by-screen storyboard in brand colour roles: alt text, contrast, monotony, passive stretches, 60-30-10 accent use |
+| Narration script | `lint_narration_script` | Timing per language pace, sentence length, pronunciation lexicon, screen-reading redundancy, cue sync with the plan |
+| Audio | `export_audio_script` | TTS text, SSML, captions, file names, cue times, and a voice-talent script table |
+
+The instructions live in [`playbook/`](playbook/) and are served to any MCP client through
+`get_playbook` and two MCP prompts, `plan_module_visuals` and `write_module_narration`.
+
 ## Example
 
 A course is produced from a single `build_from_spec` call (this is `examples/small.json`, abridged):
@@ -127,7 +142,7 @@ Full working specs live in [`examples/`](examples/) (games, branching, themed an
 
 ## Features
 
-- **43 MCP tools** — `build_from_spec` (single-call path), granular editing
+- **48 MCP tools** — `build_from_spec` (single-call path), granular editing
   (`create_project` / `add_screen` / `update_screen` / …), `set_theme` / `set_tracking`,
   `add_asset` (SSRF-guarded imports), `synthesize_speech` (offline Piper TTS), video tools
   (ffmpeg / HyperFrames motion-graphics), `preview` / `validate_package` / `build_package`,

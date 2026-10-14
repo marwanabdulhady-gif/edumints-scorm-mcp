@@ -41,6 +41,7 @@ from core.packager import Packager
 from core.project import (
     AddScreenOut,
     AssetRef,
+    BrandKit,
     BuildFromSpecOut,
     BuildOut,
     CompletionRule,
@@ -48,6 +49,7 @@ from core.project import (
     CreateProjectOut,
     EmbedHtmlScreen,
     ListScreensOut,
+    NarrationScript,
     OkOut,
     PreviewOut,
     Project,
@@ -56,6 +58,7 @@ from core.project import (
     ThemeTokens,
     Tracking,
     ValidateOut,
+    VisualPlan,
     new_asset_id,
     new_feedback_id,
     new_key_id,
@@ -116,6 +119,7 @@ logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 logger = logging.getLogger("scorm_mcp.audit")
 
 THEMES_DIR = Path(__file__).resolve().parent / "themes"
+PLAYBOOK_DIR = Path(__file__).resolve().parent / "playbook"
 
 
 # --------------------------------------------------------------------------- #
@@ -1521,6 +1525,151 @@ async def list_themes() -> dict:
     names = sorted(p.stem for p in THEMES_DIR.glob("*.json") if not p.stem.startswith("_"))
     items = [{"name": n, "description": _THEME_DESC.get(n, "")} for n in names]
     return {"count": len(items), "themes": items}
+
+
+# --------------------------------------------------------------------------- #
+# Ajan oyun kitabı (playbook/) — marka kiti, görsel plan, seslendirme metni
+# Deterministik denetim/dönüştürme (core/playbook.py); sunucuda LLM YOK. Additive.
+# --------------------------------------------------------------------------- #
+_PLAYBOOK_PAGES = {
+    "overview": "README.md",
+    "brand": "01-brand-kit.md",
+    "visual": "02-visual-plan.md",
+    "narration": "03-narration-script.md",
+    "audio": "04-audio-production.md",
+}
+_PLAYBOOK_TEMPLATES = {
+    "brand": "brand-kit.example.json",
+    "visual": "visual-plan.example.json",
+    "narration": "narration-script.example.json",
+}
+
+
+def _playbook_text(topic: str) -> str:
+    name = _PLAYBOOK_PAGES.get(topic)
+    if name is None:
+        raise ToolError("not_found", f"topic must be one of {sorted(_PLAYBOOK_PAGES)}")
+    path = PLAYBOOK_DIR / name
+    if not path.exists():
+        raise ToolError("not_found", f"playbook page missing on this server: {name}")
+    return path.read_text(encoding="utf-8")
+
+
+def _playbook_template(topic: str) -> str | None:
+    name = _PLAYBOOK_TEMPLATES.get(topic)
+    path = PLAYBOOK_DIR / "templates" / name if name else None
+    return path.read_text(encoding="utf-8") if path and path.exists() else None
+
+
+@mcp.tool
+async def get_playbook(topic: str = "overview") -> dict:
+    """Authoring playbook for AI authors: how to plan a module BEFORE building it.
+    topic: overview | brand | visual | narration | audio. Read 'overview' first when starting a
+    new course; it explains the brand kit -> visual plan -> narration script -> audio pipeline and
+    its gates (brand_to_theme, lint_visual_plan, lint_narration_script, export_audio_script).
+    Returns the page markdown plus a filled JSON example template where one exists."""
+    await SVC.ensure()
+    try:
+        await _owner()
+        return {"topic": topic, "markdown": _playbook_text(topic),
+                "template_json": _playbook_template(topic)}
+    except ToolError as e:
+        raise _wrap(e)
+
+
+@mcp.tool
+async def brand_to_theme(brand: BrandKit) -> dict:
+    """Brand kit (client colours, fonts, logo, voice) -> theme_tokens for set_theme, plus a WCAG
+    contrast report. If the primary colour is too light for UI use, an AA-safe darker variant is
+    derived and listed in 'adjustments' (tell the user). Text/background pairs below 4.5:1 are
+    errors: fix the brand kit before set_theme. Deterministic; no LLM. See get_playbook('brand')."""
+    await SVC.ensure()
+    try:
+        from core.playbook import brand_to_theme as _b2t
+        await _owner()
+        return _b2t(brand)
+    except ToolError as e:
+        raise _wrap(e)
+
+
+@mcp.tool
+async def lint_visual_plan(plan: VisualPlan, brand: BrandKit | None = None) -> dict:
+    """Quality gate for a module's visual plan (storyboard): screen types, colour roles, imagery,
+    on-screen text, cue targets. Errors (duplicate ids, missing alt text, low contrast) must be
+    fixed before building; warnings (monotony, passive stretch, text-heavy, accent overuse, no
+    knowledge check) need a decision. Pass the brand kit to check colour roles and contrast.
+    See get_playbook('visual')."""
+    await SVC.ensure()
+    try:
+        from core.playbook import lint_visual_plan as _lvp
+        await _owner()
+        return _lvp(plan, brand)
+    except ToolError as e:
+        raise _wrap(e)
+
+
+@mcp.tool
+async def lint_narration_script(script: NarrationScript, plan: VisualPlan | None = None) -> dict:
+    """Quality gate for a module's voice-over script: estimated duration per segment and total
+    (by language pace), long sentences, interface talk, acronyms missing from the pronunciation
+    lexicon, narration that reads the screen word for word, and [[cue:id]] markers that don't
+    match the visual plan's cue_targets. Pass the plan to cross-check screens and cues.
+    See get_playbook('narration')."""
+    await SVC.ensure()
+    try:
+        from core.playbook import lint_narration_script as _lns
+        await _owner()
+        return _lns(script, plan)
+    except ToolError as e:
+        raise _wrap(e)
+
+
+@mcp.tool
+async def export_audio_script(script: NarrationScript) -> dict:
+    """Approved narration script -> production outputs: per segment tts_text (lexicon applied,
+    markup removed; feed to synthesize_speech or an external TTS), ssml (breaks, cue marks,
+    pronunciations), narration_text (captions -> screen.narration_text), filename, est_sec and
+    estimated cue times; plus voice_talent_md, a voice-over table for human review or a voice
+    actor. Deterministic; does not synthesise audio. See get_playbook('audio')."""
+    await SVC.ensure()
+    try:
+        from core.playbook import export_audio_script as _eas
+        await _owner()
+        return _eas(script)
+    except ToolError as e:
+        raise _wrap(e)
+
+
+@mcp.prompt
+def plan_module_visuals(module_title: str, audience: str = "", brand_name: str = "") -> str:
+    """Plan a module's visuals screen by screen in the client's brand colours."""
+    rules = _playbook_text("visual")
+    tpl = _playbook_template("visual") or ""
+    return (
+        f"Create the VISUAL PLAN for the module '{module_title}'"
+        + (f" for {audience}" if audience else "")
+        + (f", using the '{brand_name}' brand kit" if brand_name else "")
+        + ".\n\nFollow these rules exactly:\n\n" + rules
+        + "\n\nReturn a JSON object with exactly this shape (example):\n\n" + tpl
+        + "\n\nThen call lint_visual_plan(plan, brand), fix every error, and show the user the"
+        " plan as a table (screen, type, purpose, visual concept, colours, imagery) for approval."
+    )
+
+
+@mcp.prompt
+def write_module_narration(module_title: str, language: str = "en") -> str:
+    """Write the narration and audio script for a module from its approved visual plan."""
+    rules = _playbook_text("narration")
+    tpl = _playbook_template("narration") or ""
+    return (
+        f"Write the NARRATION SCRIPT for the module '{module_title}' in language '{language}', "
+        "one segment per screen of the approved visual plan.\n\nFollow these rules exactly:\n\n"
+        + rules
+        + "\n\nReturn a JSON object with exactly this shape (example):\n\n" + tpl
+        + "\n\nThen call lint_narration_script(script, plan), fix every error, call "
+        "export_audio_script(script) and show the user voice_talent_md for approval before any "
+        "audio is produced (see get_playbook('audio'))."
+    )
 
 
 # --------------------------------------------------------------------------- #
